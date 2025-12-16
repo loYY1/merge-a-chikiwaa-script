@@ -1,10 +1,10 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
-local Rayfield = game:HttpGet('https://sirius.menu/rayfield')
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/loYY1/merge-a-chikiwaa-script/main/uilibs.luau'))()
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local box = remotes:WaitForChild("MysteryBoxEvent")
-local spinreq = remotes:WaitForChild("SpinRequestEvent")
+local spinreq = remotes:WaitForChild("SpinRequestEvent")si 
 local spinpriz = remotes:WaitForChild("SpinWheelPrizeEvent")
 local rebirth = remotes:WaitForChild("RebirthConfirmEvent")
 local UpgradeEvent = remotes:WaitForChild("UpgradeEvent")
@@ -28,6 +28,7 @@ local MaxLevels = {
     LuckyMergeLevel = 41
 }
 
+
 local Upgrades = {
     {name = "SpawnTierLevel", value = SpawnTier, baseCost = 125, multiplier = 2},
     {name = "MaxBlocksLevel", value = MaxBlocks, baseCost = 600, multiplier = 3},
@@ -47,13 +48,13 @@ local Window = Rayfield:CreateWindow({
 local Tab = Window:CreateTab("autofarm", "rewind")
 local purchasetab = Window:CreateTab("purchase")
 
+
 local boxfarming = false
 local spinfarming = false
 local rebirthfarming = false
 local autobuy = false
-local targetName = nil
 
--- utility functions
+--random bullshit
 local function calculateCost(baseCost, multiplier, level)
     local cost = baseCost * multiplier ^ (level - 1)
     if baseCost == 125 then
@@ -65,7 +66,9 @@ end
 local function tryBuyUpgrade(upgrade)
     local currentLevel = upgrade.value.Value
     local maxLevel = MaxLevels[upgrade.name]
+
     if currentLevel >= maxLevel then return false end
+
     local cost = calculateCost(upgrade.baseCost, upgrade.multiplier, currentLevel)
     if Cash.Value >= cost then
         UpgradeEvent:FireServer(upgrade.name, currentLevel + 1, cost)
@@ -108,7 +111,7 @@ Tab:CreateToggle({
     end,
 })
 
--- rebirth
+-- rebrith
 Tab:CreateToggle({
     Name = "rebrithfarm",
     CurrentValue = false,
@@ -125,8 +128,8 @@ Tab:CreateToggle({
     end,
 })
 
--- infinite money
-Tab:CreateButton({
+-- infninite money
+local moneyButton = Tab:CreateButton({
     Name = "infinite money",
     Callback = function()
         if AddValueEvent then
@@ -135,8 +138,8 @@ Tab:CreateButton({
     end,
 })
 
--- buy all upgrades
-purchasetab:CreateButton({
+-- buyall
+local purchaseall = purchasetab:CreateButton({
     Name = "buyall",
     Callback = function()
         if autobuy then return end
@@ -158,14 +161,11 @@ purchasetab:CreateButton({
     end,
 })
 
--- misc
-local misc = Window:CreateTab("misc")
-local targetName = nil
-
+misc = Window:CreateTab("misc")
 tp = misc:CreateDropdown({
     Name = "player tp",
     Options = (function()
-        local t = {}
+         t = {}
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= LocalPlayer then
                 table.insert(t, p.Name)
@@ -175,25 +175,17 @@ tp = misc:CreateDropdown({
     end)(),
     CurrentOption = "none",
     Flag = "tpdd",
-    Callback = function(selected)
-        -- handle table or string
-        if type(selected) == "table" then
-            targetName = selected[1]
-        else
-            targetName = selected
+    Callback = function(selectedName)
+        target = Players:FindFirstChild(selectedName)
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            hrp.CFrame = target.Character.HumanoidRootPart.CFrame
         end
     end,
 })
-
 tpbut = misc:CreateButton({
     Name = "teleport",
-    Callback = function()
-        if not targetName then return end
-        local target = Players:FindFirstChild(targetName)
-        local currentHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and currentHRP then
-            currentHRP.CFrame = target.Character.HumanoidRootPart.CFrame
-        end
-    end,
+    callback = function()
+    hrp.CFrame = target.Character.HumanoidRootPart.CFrame
+    end
 })
-
+return Rayfield
