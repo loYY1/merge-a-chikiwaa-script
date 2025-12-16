@@ -28,7 +28,6 @@ local MaxLevels = {
     LuckyMergeLevel = 41
 }
 
-
 local Upgrades = {
     {name = "SpawnTierLevel", value = SpawnTier, baseCost = 125, multiplier = 2},
     {name = "MaxBlocksLevel", value = MaxBlocks, baseCost = 600, multiplier = 3},
@@ -48,13 +47,13 @@ local Window = Rayfield:CreateWindow({
 local Tab = Window:CreateTab("autofarm", "rewind")
 local purchasetab = Window:CreateTab("purchase")
 
-
 local boxfarming = false
 local spinfarming = false
 local rebirthfarming = false
 local autobuy = false
+local targetName = nil
 
---random bullshit
+-- utility functions
 local function calculateCost(baseCost, multiplier, level)
     local cost = baseCost * multiplier ^ (level - 1)
     if baseCost == 125 then
@@ -66,9 +65,7 @@ end
 local function tryBuyUpgrade(upgrade)
     local currentLevel = upgrade.value.Value
     local maxLevel = MaxLevels[upgrade.name]
-
     if currentLevel >= maxLevel then return false end
-
     local cost = calculateCost(upgrade.baseCost, upgrade.multiplier, currentLevel)
     if Cash.Value >= cost then
         UpgradeEvent:FireServer(upgrade.name, currentLevel + 1, cost)
@@ -111,7 +108,7 @@ Tab:CreateToggle({
     end,
 })
 
--- rebrith
+-- rebirth
 Tab:CreateToggle({
     Name = "rebrithfarm",
     CurrentValue = false,
@@ -128,8 +125,8 @@ Tab:CreateToggle({
     end,
 })
 
--- infninite money
-local moneyButton = Tab:CreateButton({
+-- infinite money
+Tab:CreateButton({
     Name = "infinite money",
     Callback = function()
         if AddValueEvent then
@@ -138,8 +135,8 @@ local moneyButton = Tab:CreateButton({
     end,
 })
 
--- buyall
-local purchaseall = purchasetab:CreateButton({
+-- buy all upgrades
+purchasetab:CreateButton({
     Name = "buyall",
     Callback = function()
         if autobuy then return end
@@ -161,7 +158,10 @@ local purchaseall = purchasetab:CreateButton({
     end,
 })
 
-misc = Window:CreateTab("misc")
+-- misc
+local misc = Window:CreateTab("misc")
+local targetName = nil
+
 tp = misc:CreateDropdown({
     Name = "player tp",
     Options = (function()
@@ -175,16 +175,25 @@ tp = misc:CreateDropdown({
     end)(),
     CurrentOption = "none",
     Flag = "tpdd",
-    Callback = function(selectedName)
-        target = Players:FindFirstChild(selectedName)
-        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            hrp.CFrame = target.Character.HumanoidRootPart.CFrame
+    Callback = function(selected)
+        -- handle table or string
+        if type(selected) == "table" then
+            targetName = selected[1]
+        else
+            targetName = selected
         end
     end,
 })
+
 tpbut = misc:CreateButton({
-    Name = "teleport"
-    callback = function()
-    hrp.CFrame = target.Character.HumanoidRootPart.CFrame
-    end
+    Name = "teleport",
+    Callback = function()
+        if not targetName then return end
+        local target = Players:FindFirstChild(targetName)
+        local currentHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and currentHRP then
+            currentHRP.CFrame = target.Character.HumanoidRootPart.CFrame
+        end
+    end,
 })
+
