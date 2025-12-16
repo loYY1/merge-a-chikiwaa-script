@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/loYY1/merge-a-chikiwaa-script/main/uilibs.luau'))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local box = remotes:WaitForChild("MysteryBoxEvent")
 local spinreq = remotes:WaitForChild("SpinRequestEvent")si 
@@ -188,4 +188,5 @@ tpbut = misc:CreateButton({
     hrp.CFrame = target.Character.HumanoidRootPart.CFrame
     end
 })
+
 
