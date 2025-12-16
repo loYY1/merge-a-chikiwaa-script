@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/loYY1/merge-a-chikiwaa-script/main/uilibs.luau'))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local box = remotes:WaitForChild("MysteryBoxEvent")
 local spinreq = remotes:WaitForChild("SpinRequestEvent")
@@ -28,7 +28,6 @@ local MaxLevels = {
     LuckyMergeLevel = 41
 }
 
-
 local Upgrades = {
     {name = "SpawnTierLevel", value = SpawnTier, baseCost = 125, multiplier = 2},
     {name = "MaxBlocksLevel", value = MaxBlocks, baseCost = 600, multiplier = 3},
@@ -48,13 +47,13 @@ local Window = Rayfield:CreateWindow({
 local Tab = Window:CreateTab("autofarm", "rewind")
 local purchasetab = Window:CreateTab("purchase")
 
-
 local boxfarming = false
 local spinfarming = false
 local rebirthfarming = false
 local autobuy = false
+local targetName = nil
 
---random bullshit
+-- utility functions
 local function calculateCost(baseCost, multiplier, level)
     local cost = baseCost * multiplier ^ (level - 1)
     if baseCost == 125 then
@@ -66,9 +65,7 @@ end
 local function tryBuyUpgrade(upgrade)
     local currentLevel = upgrade.value.Value
     local maxLevel = MaxLevels[upgrade.name]
-
     if currentLevel >= maxLevel then return false end
-
     local cost = calculateCost(upgrade.baseCost, upgrade.multiplier, currentLevel)
     if Cash.Value >= cost then
         UpgradeEvent:FireServer(upgrade.name, currentLevel + 1, cost)
@@ -111,7 +108,7 @@ Tab:CreateToggle({
     end,
 })
 
--- rebrith
+-- rebirth
 Tab:CreateToggle({
     Name = "rebrithfarm",
     CurrentValue = false,
@@ -122,14 +119,15 @@ Tab:CreateToggle({
             local rebritharg = {0, 50000, 150}
             while rebirthfarming do
                 rebirth:FireServer(unpack(rebritharg))
-                task.wait(0.5)
+                task.wait(0.00000001)
+                AddValueEvent:FireServer("Cash", 1e30)
             end
         end)
     end,
 })
 
--- infninite money
-local moneyButton = Tab:CreateButton({
+-- infinite money
+Tab:CreateButton({
     Name = "infinite money",
     Callback = function()
         if AddValueEvent then
@@ -138,8 +136,8 @@ local moneyButton = Tab:CreateButton({
     end,
 })
 
--- buyall
-local purchaseall = purchasetab:CreateButton({
+-- buy all upgrades
+purchasetab:CreateButton({
     Name = "buyall",
     Callback = function()
         if autobuy then return end
@@ -161,12 +159,14 @@ local purchaseall = purchasetab:CreateButton({
     end,
 })
 
-local target -- Added to ensure the button can see the dropdown selection
-misc = Window:CreateTab("misc")
+-- misc
+local misc = Window:CreateTab("misc")
+local targetName = nil
+
 tp = misc:CreateDropdown({
     Name = "player tp",
     Options = (function()
-         t = {}
+        local t = {}
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= LocalPlayer then
                 table.insert(t, p.Name)
@@ -176,18 +176,37 @@ tp = misc:CreateDropdown({
     end)(),
     CurrentOption = "none",
     Flag = "tpdd",
-    Callback = function(selectedName)
-        target = Players:FindFirstChild(selectedName)
+    Callback = function(selected)
+        -- handle table or string
+        if type(selected) == "table" then
+            targetName = selected[1]
+        else
+            targetName = selected
+        end
     end,
 })
+
 tpbut = misc:CreateButton({
     Name = "teleport",
     Callback = function()
-        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            local currentHrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if currentHrp then
-                currentHrp.CFrame = target.Character.HumanoidRootPart.CFrame
-            end
+        if not targetName then return end
+        local target = Players:FindFirstChild(targetName)
+        local currentHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and currentHRP then
+            currentHRP.CFrame = target.Character.HumanoidRootPart.CFrame
         end
-    end
+    end,
+})
+local bestblockinput = misc:CreateInput({
+    Name = "bestblockupdate",
+    CurrentValue = "",
+    PlaceholderText = "number",
+    RemoveTextAfterFocusLost = false,
+    Flag = "bbinput",
+    Callback = function(Text)
+        local text1 = tonumber(Text)
+        if text1 then
+            remotes.UpdateBestBlockEvent:FireServer(text1)
+        end
+    end,
 })
